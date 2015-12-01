@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+
+<html ng-app="blackJackApp">
+  <head>
+    <title>Let's Play: BlackJack</title>
+    <script src="/bower_components/angular/angular.js"></script>
+    <script src="/bower_components/angular-animate/angular-animate.js"></script>
+    <script src="/bower_components/angular-aria/angular-aria.js"></script>
+    <script src="/bower_components/angular-material/angular-material.js"></script>
+    <script src="/bower_components/angular-route/angular-route.js"></script>
+    <script src="/bower_components/socket.io-client/socket.io.js"></script>
+
+    <script src="/js/index.js"></script>
+
+    <link rel="stylesheet" href="/bower_components/angular-material/angular-material.min.css">
+    <link rel="stylesheet" href="/bower_components/angular-material/angular-material.layouts.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+  </head>
+  <body layout="column" ng-controller="mainController as vm">
+    <md-toolbar layout="row">
+      <div class="md-toolbar-tools">
+        <h1>Let's Play BlackJack</h1>
+      </div>
+    </md-toolbar>
+    <div layout="row" flex>
+      <md-sidenav flex layout="column" class="md-sidenav-left md-whiteframe-4dp" md-component-id="left" md-is-locked-open="true">
+        <p>Current Hand Value: <span id="handValue">{{value}}</span></p>
+
+        <md-toolbar layout="row">
+          <div class="md-toolbar-tools">
+            <h1>Controls</h1>
+          </div>
+        </md-toolbar>
+        <md-button class="md-accent md-raised" ng-click="makeMove('hit')" ng-disabled="!canHit || !myTurn" id="hit">Hit</md-button>
+        <md-button class="md-accent md-raised" ng-click="makeMove('stay')" ng-disabled="!canStay || !myTurn" id="stay">Stay</md-button>
+        <md-button class="md-accent md-raised" ng-click="makeMove('split')" ng-disabled="!canSplit || !myTurn" id="split">Split</md-button>
+        <textarea flex ng-model="logs" style="background-color: rgba(100,20,20,0.5); color: #eee; font-size: 0.7em" readonly></textarea>
+      </md-sidenav>
+      <div ng-show="queued" layout="row" layout="space-between center" flex id="content">
+        <h1>You are currently queued. Waiting on a game to open up...</h1>
+      </div>
+      <div ng-hide="queued" layout="column" flex id="content">
+        <md-content layout="column" flex class="md-padding">
+
+          <md-card id="my-hand">
+            <md-toolbar ng-class="{'md-accent': myTurn}" layout="row">
+              <div class="md-toolbar-tools">
+                <h1><strong class="winner" ng-show="winner">[WINNER!] </strong><strong id="bust" ng-show="bust">[BUST!] </strong>{{name}} <strong>(Your hand!)</strong></h1>
+              </div>
+            </md-toolbar>
+            <md-card-content layout="row" layout-align="space-around center">
+              <div class="md-whiteframe-1dp" id="{{'card-'+$index}}" ng-repeat="card in hand" flex="10" style="text-align: center">
+                <p class="md.display-1"><span class="card-rank">{{card.rank}}</span>{{card.suit}}</p>
+              </div>
+            </md-card-content>
+          </md-card>
+
+          <md-card ng-repeat="player in players">
+            <md-toolbar ng-class="{'md-accent': player.active}" layout="row">
+              <div class="md-toolbar-tools">
+                <h1><strong class="winner" ng-show="player.winner">[WINNER!] </strong><strong ng-show="player.bust">[BUST!] </strong>{{player.name}} <span ng-if="player.isAI">(AI)</span></h1>
+              </div>
+            </md-toolbar>
+            <md-card-content layout="row" layout-align="space-around center">
+              <div class="md-whiteframe-1dp" ng-repeat="card in player.hand" flex="10" style="text-align: center">
+                <p ng-show="card === '??'" class="md.display-1">(Hidden)</p>
+
+                <p ng-hide="card === '??'" class="md.display-1">{{card.rank}}{{card.suit}}</p>
+              </div>
+            </md-card-content>
+          </md-card>
+
+          <md-card>
+            <md-toolbar ng-class="{'md-accent': dealer.active}" layout="row">
+              <div class="md-toolbar-tools">
+                <h1><strong class="winner" ng-show="dealer.winner">[WINNER!] </strong><strong ng-show="dealer.bust">[BUST!] </strong>Dealer (AI)</h1>
+              </div>
+            </md-toolbar>
+            <md-card-content layout="row" layout-align="space-around center">
+              <div class="md-whiteframe-1dp" ng-repeat="card in dealer.hand" flex="10" style="text-align: center">
+                <p ng-show="card === '??'" class="md.display-1">(Hidden)</p>
+
+                <p ng-hide="card === '??'" class="md.display-1">{{card.rank}}{{card.suit}}</p>
+              </div>
+            </md-card-content>
+          </md-card>
+
+        </md-content>
+      </div>
+    </div>
+  </body>
+</html>
